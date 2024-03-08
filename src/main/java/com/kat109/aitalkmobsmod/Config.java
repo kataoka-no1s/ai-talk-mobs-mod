@@ -60,6 +60,9 @@ public class Config {
 			.comment("Chat messages")
 			.defineList("chatMessages", Arrays.asList("default@@default"), (chatMessage) -> true);
 
+	public static final ForgeConfigSpec.ConfigValue<String> GOOGLEAI_API_KEY = BUILDER.comment("GoogleAI API Key")
+			.define("googleAIKey", "");
+
 	static final ForgeConfigSpec SPEC = BUILDER.build();
 
 	public static String aiModel;
@@ -68,6 +71,7 @@ public class Config {
 	public static String openAIKey;
 	public static String awsKey;
 	public static String awsSecretKey;
+	public static String googleAIKey;
 	public static Number maxTokens;
 	public static String prompt;
 	public static String promptJP;
@@ -83,6 +87,7 @@ public class Config {
 		openAIKey = OPENAI_API_KEY.get();
 		awsKey = AWS_KEY.get();
 		awsSecretKey = AWS_SECRET_KEY.get();
+		googleAIKey = GOOGLEAI_API_KEY.get();
 		maxTokens = MAX_TOKENS.get();
 		prompt = PROMPT.get();
 		promptJP = PROMPT_JP.get();
@@ -125,6 +130,11 @@ public class Config {
 	public static void saveAwsSecretKey(final String awsSecretKey) {
 		AWS_SECRET_KEY.set(awsSecretKey);
 		AWS_SECRET_KEY.save();
+	}
+
+	public static void saveGoogleAIKey(final String key) {
+		GOOGLEAI_API_KEY.set(key);
+		GOOGLEAI_API_KEY.save();
 	}
 
 	public static void saveChatMessage(final String mobName, final String message) {

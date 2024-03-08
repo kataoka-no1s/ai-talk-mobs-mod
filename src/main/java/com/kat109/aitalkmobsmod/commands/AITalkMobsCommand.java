@@ -38,6 +38,11 @@ public class AITalkMobsCommand {
 								""".formatted(Config.awsRegion,
 								(!Config.awsKey.isEmpty() ? "configured" : "unset"),
 								(!Config.awsSecretKey.isEmpty() ? "configured" : "unset"));
+					} else if (Arrays.asList(Constants.GOOGLEAI_MODELS).contains(model)) {
+
+						infoString += """
+								API Key: %s
+								""".formatted((!Config.googleAIKey.isEmpty() ? "configured" : "unset"));
 					}
 
 					context.getSource().getPlayerOrException()
@@ -46,20 +51,23 @@ public class AITalkMobsCommand {
 				}))
 				.then(Commands.literal("selectModel")
 						.then(Commands.literal("gpt-3.5-turbo").executes(context -> {
-							return sendModelChangeMessage(context, "gpt-3.5-turbo",
+							return saveModelAndsendMessage(context, "gpt-3.5-turbo",
 									Constants.OPENAI_MODEL_GPT3_5_TURBO);
 						})).then(Commands.literal("gpt-4").executes(context -> {
-							return sendModelChangeMessage(context, "gpt-4",
+							return saveModelAndsendMessage(context, "gpt-4",
 									Constants.OPENAI_MODEL_GPT4);
 						})).then(Commands.literal("gpt-4-turbo-preview").executes(context -> {
-							return sendModelChangeMessage(context, "gpt-4-turbo-preview",
+							return saveModelAndsendMessage(context, "gpt-4-turbo-preview",
 									Constants.OPENAI_MODEL_GPT4_TURBO_PREVIEW);
 						})).then(Commands.literal("claude-2.0").executes(context -> {
-							return sendModelChangeMessage(context, "claude-2.0",
+							return saveModelAndsendMessage(context, "claude-2.0",
 									Constants.ANTHROPIC_MODEL_CLAUDE2);
 						})).then(Commands.literal("claude-2.1").executes(context -> {
-							return sendModelChangeMessage(context, "claude-2.1",
+							return saveModelAndsendMessage(context, "claude-2.1",
 									Constants.ANTHROPIC_MODEL_CLAUDE2_1);
+						})).then(Commands.literal("gemini-pro").executes(context -> {
+							return saveModelAndsendMessage(context, "gemini-pro",
+									Constants.ANTHROPIC_MODEL_GEMINI_PRO);
 						})))
 				.then(Commands.literal("selectTalkLanguage")
 						.then(Commands.literal("english").executes(context -> {
@@ -123,10 +131,19 @@ public class AITalkMobsCommand {
 									context.getSource().getPlayerOrException()
 											.sendSystemMessage(Component.nullToEmpty(" AWS Region is set."));
 									return Command.SINGLE_SUCCESS;
+								}))))
+				.then(Commands.literal("googleAIConfig")
+						.then(Commands.literal("setApiKey")
+								.then(Commands.argument("apiKey", StringArgumentType.string()).executes(context -> {
+									String apiKey = context.getArgument("apiKey", String.class);
+									Config.saveGoogleAIKey(apiKey);
+									context.getSource().getPlayerOrException()
+											.sendSystemMessage(Component.nullToEmpty(" API Key is set."));
+									return Command.SINGLE_SUCCESS;
 								})))));
 	}
 
-	public static int sendModelChangeMessage(CommandContext<CommandSourceStack> context, String dispModelName,
+	public static int saveModelAndsendMessage(CommandContext<CommandSourceStack> context, String dispModelName,
 			String modelName) throws CommandSyntaxException {
 		Config.saveAIModel(modelName);
 		context.getSource().getPlayerOrException()

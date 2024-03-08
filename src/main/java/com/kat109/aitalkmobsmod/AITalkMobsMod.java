@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import com.kat109.aitalkmobsmod.commands.AITalkMobsCommand;
 import com.kat109.aitalkmobsmod.constants.Constants;
 import com.kat109.aitalkmobsmod.utils.AnthropicUtil;
+import com.kat109.aitalkmobsmod.utils.GoogleAIUtil;
 import com.kat109.aitalkmobsmod.utils.OpenAIUtil;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -85,10 +86,13 @@ public class AITalkMobsMod {
 
 						// AIのモデル
 						String model = Config.aiModel;
+						GoogleAIUtil.send(player, mobName, prompt);
 						if (Arrays.asList(Constants.OPENAI_MODELS).contains(model)) {
 							OpenAIUtil.send(player, mobName, prompt);
 						} else if (Arrays.asList(Constants.ANTHROPIC_MODELS).contains(model)) {
 							AnthropicUtil.send(player, mobName, prompt);
+						} else if (Arrays.asList(Constants.GOOGLEAI_MODELS).contains(model)) {
+							GoogleAIUtil.send(player, mobName, prompt);
 						} else {
 							player.sendSystemMessage(Component.nullToEmpty(
 									ChatFormatting.RED
