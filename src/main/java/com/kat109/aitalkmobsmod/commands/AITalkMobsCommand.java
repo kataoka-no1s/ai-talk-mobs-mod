@@ -14,10 +14,22 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 
+/**
+ * コマンドクラス
+ */
 public class AITalkMobsCommand {
+	/**
+	 * コマンドを登録
+	 * 
+	 * @param dispatcher
+	 */
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-		dispatcher.register(Commands.literal("aiTalk")
+		dispatcher.register(Commands.literal("aiTalk") // 各コマンドの最初に「/aiTalk」をつける
 				.then(Commands.literal("info").executes(context -> {
+					/**
+					 * 「/aiTalk info」コマンド
+					 * ・ 現在の登録情報を表示する
+					 */
 
 					String infoString = """
 							AI Model: %s
@@ -50,6 +62,11 @@ public class AITalkMobsCommand {
 					return Command.SINGLE_SUCCESS;
 				}))
 				.then(Commands.literal("selectModel")
+						/**
+						 * 「/aiTalk selectModel {モデル名}」コマンド
+						 * ・ 利用するモデルを選択する
+						 */
+
 						.then(Commands.literal("gpt-3.5-turbo").executes(context -> {
 							return saveModelAndsendMessage(context, "gpt-3.5-turbo",
 									Constants.OPENAI_MODEL_GPT3_5_TURBO);
@@ -70,6 +87,11 @@ public class AITalkMobsCommand {
 									Constants.ANTHROPIC_MODEL_GEMINI_PRO);
 						})))
 				.then(Commands.literal("selectTalkLanguage")
+						/**
+						 * 「/aiTalk selectTalkLanguage {言語}」コマンド
+						 * ・ モブが話す言語を選択する
+						 */
+
 						.then(Commands.literal("english").executes(context -> {
 							Config.saveTalkLanguage("english");
 							Config.resetChatMessage();
@@ -98,6 +120,11 @@ public class AITalkMobsCommand {
 						})))
 				.then(Commands.literal("openAIConfig")
 						.then(Commands.literal("setApiKey")
+								/**
+								 * 「/aiTalk openAIConfig setApiKey {APIキー}」コマンド
+								 * ・ OpenAIのAPIキーを登録する
+								 */
+
 								.then(Commands.argument("apiKey", StringArgumentType.string()).executes(context -> {
 									String apiKey = context.getArgument("apiKey", String.class);
 									Config.saveOpenAIKey(apiKey);
@@ -107,6 +134,11 @@ public class AITalkMobsCommand {
 								}))))
 				.then(Commands.literal("awsConfig")
 						.then(Commands.literal("setAwsKey")
+								/**
+								 * 「/aiTalk awsConfig setAwsKey {AWSアクセスキー}」コマンド
+								 * ・ AWS Bedrockを利用するAIの場合にAWSアクセスキーを登録する
+								 */
+
 								.then(Commands.argument("awsKey", StringArgumentType.string()).executes(context -> {
 									String awsKey = context.getArgument("awsKey", String.class);
 									Config.saveAwsKey(awsKey);
@@ -115,6 +147,11 @@ public class AITalkMobsCommand {
 									return Command.SINGLE_SUCCESS;
 								})))
 						.then(Commands.literal("setAwsSecretKey")
+								/**
+								 * 「/aiTalk awsConfig setAwsSecretKey {AWSシークレットキー}」コマンド
+								 * ・ AWS Bedrockを利用するAIの場合にAWSシークレットキーを登録する
+								 */
+
 								.then(Commands.argument("awsSecretKey", StringArgumentType.string())
 										.executes(context -> {
 											String awsSecretKey = context.getArgument("awsSecretKey", String.class);
@@ -125,6 +162,11 @@ public class AITalkMobsCommand {
 											return Command.SINGLE_SUCCESS;
 										})))
 						.then(Commands.literal("setAwsRegion")
+								/**
+								 * 「/aiTalk awsConfig setAwsRegion {AWSリージョン}」コマンド
+								 * ・ AWS Bedrockを利用するAIの場合にAWSリージョンを登録する
+								 */
+
 								.then(Commands.argument("awsRegion", StringArgumentType.string()).executes(context -> {
 									String awsRegion = context.getArgument("awsRegion", String.class);
 									Config.saveAwsRegion(awsRegion);
@@ -134,6 +176,11 @@ public class AITalkMobsCommand {
 								}))))
 				.then(Commands.literal("googleAIConfig")
 						.then(Commands.literal("setApiKey")
+								/**
+								 * 「/aiTalk googleAIConfig setApiKey {APIキー}」コマンド
+								 * ・ GoogleAIのAPIキーを登録する
+								 */
+
 								.then(Commands.argument("apiKey", StringArgumentType.string()).executes(context -> {
 									String apiKey = context.getArgument("apiKey", String.class);
 									Config.saveGoogleAIKey(apiKey);
@@ -143,6 +190,15 @@ public class AITalkMobsCommand {
 								})))));
 	}
 
+	/**
+	 * 使用するモデルを保存して完了メッセージを表示する
+	 * 
+	 * @param context       CommandContext
+	 * @param dispModelName 表示用モデル名
+	 * @param modelName     実際のモデル名（APIリクエスト時に使用）
+	 * @return
+	 * @throws CommandSyntaxException
+	 */
 	public static int saveModelAndsendMessage(CommandContext<CommandSourceStack> context, String dispModelName,
 			String modelName) throws CommandSyntaxException {
 		Config.saveAIModel(modelName);

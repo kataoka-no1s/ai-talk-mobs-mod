@@ -159,7 +159,7 @@ dependencies {
     shade 'org.reactivestreams:reactive-streams:1.0.4'
     shade files('libs/aws-sdk-v2.jar')
 
-    // ※上記のlibs/aws-sdk-v2.jarは以下のライブラリを含む
+    // ※上記のlibs/aws-sdk-v2.jarは以下のライブラリを含む（個別にshadeすると階層の問題でエラーになるもの）
     // shade platform('software.amazon.awssdk:bom:2.21.17')
     // shade 'software.amazon.awssdk:bedrockruntime'
     // shade 'software.amazon.awssdk:sts'

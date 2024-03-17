@@ -41,6 +41,16 @@ public class AITalkMobsMod {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 	}
 
+	/**
+	 * エンティティの挙動を制御する
+	 * ※このMODのメインの実装箇所
+	 * 
+	 * @param event
+	 * @throws UncheckedIOException
+	 * @throws URISyntaxException
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
 	@SubscribeEvent
 	public void onEntityInteract(PlayerInteractEvent.EntityInteract event)
 			throws UncheckedIOException, URISyntaxException, InterruptedException, ExecutionException {
@@ -52,22 +62,28 @@ public class AITalkMobsMod {
 
 		try {
 			if (event.getTarget() instanceof Mob) {
-				// エンティティがモブだった場合
+				// エンティティがモブ（キャラクター）だった場合
 
 				Mob entity = (Mob) event.getTarget();
 
 				if (entity.isAlive() && event.getHand() == InteractionHand.MAIN_HAND) {
-					// モブが生きているかつ右クリックされた場合
+					// モブが生存しているかつ右クリックされた場合
 
-					// プレイヤー取得
+					// プレイヤー情報取得
 					LocalPlayer player = Minecraft.getInstance().player;
 
-					// モブの名前取得
+					// モブの名前取得（村人など）
 					String mobName = entity.getDisplayName().getString();
 
 					// AIからメッセージを取得するスレッド関数
 					Thread connectAI = new Thread(() -> {
-						// プロンプト定義
+						/**
+						 * プロンプト取得
+						 * 
+						 * TODO プロンプトは一つにまとめたかったが、
+						 * AIの返答がプロンプトの言語に依存してしまう問題を完全に回避できず、
+						 * 仕方なく言語毎にプロンプトを設定している。
+						 */
 						String prompt = Config.prompt;
 						switch (Config.talkLanguage) {
 							case "japanese":
@@ -84,14 +100,17 @@ public class AITalkMobsMod {
 						}
 						prompt = prompt.replace("{mobName}", mobName);
 
-						// AIのモデル
+						// 生成AIへの接続（実際の通信は各Utilクラスのsendメソッド内で行う）
 						String model = Config.aiModel;
 						GoogleAIUtil.send(player, mobName, prompt);
 						if (Arrays.asList(Constants.OPENAI_MODELS).contains(model)) {
+							// ChatGPTの場合
 							OpenAIUtil.send(player, mobName, prompt);
 						} else if (Arrays.asList(Constants.ANTHROPIC_MODELS).contains(model)) {
+							// Claudeの場合
 							AnthropicUtil.send(player, mobName, prompt);
 						} else if (Arrays.asList(Constants.GOOGLEAI_MODELS).contains(model)) {
+							// Geminiの場合
 							GoogleAIUtil.send(player, mobName, prompt);
 						} else {
 							player.sendSystemMessage(Component.nullToEmpty(
@@ -110,7 +129,7 @@ public class AITalkMobsMod {
 					String message = Config.chatMessages.get(mobName);
 
 					if (message == null)
-						// デフォルトのメッセージ
+						// デフォルトのメッセージ（登録言語によって振り分け）
 						switch (Config.talkLanguage) {
 							case "japanese":
 								message = "こんにちは！";

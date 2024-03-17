@@ -21,8 +21,22 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 
+/**
+ * AnthropicのAIに関わるクラス（Claude2など）
+ */
 public class AnthropicUtil {
+	/**
+	 * Anthropicの生成AIのAPI接続処理
+	 * 
+	 * ※プロンプトをAPIにリクエストし、
+	 * レスポンスのテキストをコンフィグファイルに保存する。
+	 * 
+	 * @param player  プレイヤー情報
+	 * @param mobName モブの名前
+	 * @param prompt  プロンプト
+	 */
 	public static void send(LocalPlayer player, String mobName, String prompt) {
+		// AWSの設定情報（アクセスキー、シークレットキー、リージョン）がセットされているか確認
 		if (StringUtils.isEmpty(Config.awsRegion) ||
 				StringUtils.isEmpty(Config.awsKey)
 				|| StringUtils.isEmpty(Config.awsSecretKey)) {
@@ -32,6 +46,7 @@ public class AnthropicUtil {
 			return;
 		}
 
+		// リクエスト用にプロンプトを整形
 		String enclosedPrompt = "Human: " + prompt + "\n\nAssistant:";
 
 		AwsBasicCredentials awsCreds = AwsBasicCredentials.create(Config.awsKey,
@@ -44,6 +59,7 @@ public class AnthropicUtil {
 				.credentialsProvider(StaticCredentialsProvider.create(awsCreds))
 				.httpClient(nettyHttpClient).build();
 
+		// リクエストする内容を設定（プロンプトや最大トークン数など）
 		String payload = new JSONObject().put("prompt", enclosedPrompt)
 				.put("max_tokens_to_sample", Config.maxTokens).put("temperature", 0.5)
 				.put("stop_sequences", List.of("\n\nHuman:")).toString();
@@ -52,6 +68,7 @@ public class AnthropicUtil {
 				.modelId(Config.aiModel).contentType("application/json").accept("application/json")
 				.build();
 
+		// APIリクエスト処理
 		CompletableFuture<InvokeModelResponse> completableFuture = client.invokeModel(request)
 				.whenComplete((response, exception) -> {
 					if (exception != null) {
@@ -64,10 +81,14 @@ public class AnthropicUtil {
 		String generatedText = "";
 		InvokeModelResponse response;
 		try {
+			// APIのレスポンス取得
 			response = completableFuture.get();
 			JSONObject responseBody = new JSONObject(response.body().asUtf8String());
+
+			// レスポンスからメッセージ部分を抽出
 			generatedText = responseBody.getString("completion");
 
+			// メッセージをコンフィグファイルに保存
 			Config.saveChatMessage(mobName, generatedText);
 		} catch (InterruptedException | ExecutionException e) {
 			player.sendSystemMessage(Component.nullToEmpty(
