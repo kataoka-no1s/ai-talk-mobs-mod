@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import com.kat109.aitalkmobsmod.commands.AITalkMobsCommand;
 import com.kat109.aitalkmobsmod.constants.Constants;
 import com.kat109.aitalkmobsmod.utils.AnthropicUtil;
+import com.kat109.aitalkmobsmod.utils.AwsBedrockUtil;
 import com.kat109.aitalkmobsmod.utils.GoogleAIUtil;
 import com.kat109.aitalkmobsmod.utils.OpenAIUtil;
 
@@ -102,7 +103,6 @@ public class AITalkMobsMod {
 
 						// 生成AIへの接続（実際の通信は各Utilクラスのsendメソッド内で行う）
 						String model = Config.aiModel;
-						GoogleAIUtil.send(player, mobName, prompt);
 						if (Arrays.asList(Constants.OPENAI_MODELS).contains(model)) {
 							// ChatGPTの場合
 							OpenAIUtil.send(player, mobName, prompt);
@@ -112,6 +112,9 @@ public class AITalkMobsMod {
 						} else if (Arrays.asList(Constants.GOOGLEAI_MODELS).contains(model)) {
 							// Geminiの場合
 							GoogleAIUtil.send(player, mobName, prompt);
+						} else if (Arrays.asList(Constants.AWS_BEDROCK_MODELS).contains(model)) {
+							// AwsBedrockの場合
+							AwsBedrockUtil.send(player, mobName, prompt);
 						} else {
 							player.sendSystemMessage(Component.nullToEmpty(
 									ChatFormatting.RED

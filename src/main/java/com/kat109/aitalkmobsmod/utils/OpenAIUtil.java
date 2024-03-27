@@ -46,7 +46,7 @@ public class OpenAIUtil {
 
 		OkHttpClient client = new OkHttpClient();
 
-		// AIPにリクエストするjsonオブジェクトを作成
+		// APIにリクエストするjsonオブジェクトを作成
 		Gson gson = new Gson();
 		Map<String, Object> requestBody = new HashMap<>();
 		Map<String, String> systemMsg = new HashMap<String, String>();

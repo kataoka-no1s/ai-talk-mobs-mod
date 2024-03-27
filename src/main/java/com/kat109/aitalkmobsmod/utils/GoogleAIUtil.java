@@ -46,7 +46,7 @@ public class GoogleAIUtil {
 
 		JsonObject message = new JsonObject();
 
-		// AIPにリクエストするjsonオブジェクトを作成
+		// APIにリクエストするjsonオブジェクトを作成
 		message.addProperty("text", prompt);
 		JsonObject contents = new JsonObject();
 		contents.add("parts", new JsonArray());

@@ -1,22 +1,19 @@
 package com.kat109.aitalkmobsmod.utils;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
 import com.kat109.aitalkmobsmod.Config;
-import com.kat109.aitalkmobsmod.software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import com.kat109.aitalkmobsmod.software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import com.kat109.aitalkmobsmod.software.amazon.awssdk.core.SdkBytes;
-import com.kat109.aitalkmobsmod.software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import com.kat109.aitalkmobsmod.software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
-import com.kat109.aitalkmobsmod.software.amazon.awssdk.regions.Region;
-import com.kat109.aitalkmobsmod.software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeAsyncClient;
-import com.kat109.aitalkmobsmod.software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest;
-import com.kat109.aitalkmobsmod.software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -36,64 +33,59 @@ public class AnthropicUtil {
 	 * @param prompt  プロンプト
 	 */
 	public static void send(LocalPlayer player, String mobName, String prompt) {
-		// AWSの設定情報（アクセスキー、シークレットキー、リージョン）がセットされているか確認
-		if (StringUtils.isEmpty(Config.awsRegion) ||
-				StringUtils.isEmpty(Config.awsKey)
-				|| StringUtils.isEmpty(Config.awsSecretKey)) {
+		// APIキーがセットされているか確認
+		if (StringUtils.isEmpty(Config.anthropicKey)) {
 			player.sendSystemMessage(Component.nullToEmpty(
 					ChatFormatting.RED
-							+ "[ERROR]:Either AWS Region/AWS Key/AWS Secret Key is not set. Please use the commands \"/aiTalk awsConfig setAwsKey\", \"/aiTalk awsConfig setAwsSecretKey\", and \"/aiTalk awsConfig setAwsRegion\" to set them."));
+							+ "[ERROR]:API Key is not set. Please use the commands \"/aiTalk anthropicConfig setAPIKey\" to set it."));
 			return;
 		}
 
-		// リクエスト用にプロンプトを整形
-		String enclosedPrompt = "Human: " + prompt + "\n\nAssistant:";
+		// コンフィグファイルからAPIキーを取得
+		String apiKey = Config.anthropicKey;
 
-		AwsBasicCredentials awsCreds = AwsBasicCredentials.create(Config.awsKey,
-				Config.awsSecretKey);
+		OkHttpClient client = new OkHttpClient();
 
-		SdkAsyncHttpClient nettyHttpClient = NettyNioAsyncHttpClient.create();
+		// APIにリクエストするjsonオブジェクトを作成
+		Gson gson = new Gson();
+		Map<String, Object> requestBody = new HashMap<>();
+		Map<String, String> userMsg = new HashMap<String, String>();
+		userMsg.put("role", "user");
+		userMsg.put("content", prompt);
+		List<Map<String, String>> messages = new ArrayList<>();
+		messages.add(userMsg);
+		requestBody.put("model", Config.aiModel);
+		requestBody.put("messages", messages);
+		requestBody.put("max_tokens", Config.maxTokens);
 
-		BedrockRuntimeAsyncClient client = BedrockRuntimeAsyncClient.builder()
-				.region(Region.of(Config.awsRegion))
-				.credentialsProvider(StaticCredentialsProvider.create(awsCreds))
-				.httpClient(nettyHttpClient).build();
+		String json = gson.toJson(requestBody);
 
-		// リクエストする内容を設定（プロンプトや最大トークン数など）
-		String payload = new JSONObject().put("prompt", enclosedPrompt)
-				.put("max_tokens_to_sample", Config.maxTokens).put("temperature", 0.5)
-				.put("stop_sequences", List.of("\n\nHuman:")).toString();
-
-		InvokeModelRequest request = InvokeModelRequest.builder().body(SdkBytes.fromUtf8String(payload))
-				.modelId(Config.aiModel).contentType("application/json").accept("application/json")
+		// TODO:content-type jsonを指定すればこの処理は不要？
+		com.squareup.okhttp.RequestBody body = com.squareup.okhttp.RequestBody.create(
+				com.squareup.okhttp.MediaType.parse("application/json; charset=utf-8"),
+				json);
+		// リクエストボディを作成
+		Request request = new Request.Builder()
+				.url("https://api.anthropic.com/v1/messages")
+				.post(body)
+				.addHeader("anthropic-version", "2023-06-01")
+				.addHeader("x-api-key", apiKey)
 				.build();
 
-		// APIリクエスト処理
-		CompletableFuture<InvokeModelResponse> completableFuture = client.invokeModel(request)
-				.whenComplete((response, exception) -> {
-					if (exception != null) {
-						player.sendSystemMessage(
-								Component.nullToEmpty(ChatFormatting.RED
-										+ "[ERROR]:Model invocation failed: " + exception));
-					}
-				});
-
 		String generatedText = "";
-		InvokeModelResponse response;
 		try {
-			// APIのレスポンス取得
-			response = completableFuture.get();
-			JSONObject responseBody = new JSONObject(response.body().asUtf8String());
+			// リクエスト実行/レスポンス取得
+			com.squareup.okhttp.Response response = client.newCall(request).execute();
+			JSONObject responseBody = new JSONObject(response.body().string());
 
 			// レスポンスからメッセージ部分を抽出
-			generatedText = responseBody.getString("completion");
-
+			generatedText = responseBody.getJSONArray("content").getJSONObject(0)
+					.getString("text");
 			// メッセージをコンフィグファイルに保存
 			Config.saveChatMessage(mobName, generatedText);
-		} catch (InterruptedException | ExecutionException e) {
-			player.sendSystemMessage(Component.nullToEmpty(
-					ChatFormatting.RED
-							+ "[ERROR]:Failed to connect to AWS Bedrock, please check if AWS Region, AWS Key and AWS Secret Key are set correctly."));
+		} catch (IOException e) {
+			player.sendSystemMessage(Component.nullToEmpty(ChatFormatting.RED
+					+ "[ERROR]:Failed to connect to OpenAI API, please check if API Key are set correctly."));
 			player.sendSystemMessage(Component.nullToEmpty(e.getMessage()));
 		}
 	}

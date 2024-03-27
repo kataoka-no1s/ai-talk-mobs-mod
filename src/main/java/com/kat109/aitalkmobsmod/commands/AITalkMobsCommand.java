@@ -43,6 +43,11 @@ public class AITalkMobsCommand {
 								API Key: %s
 								""".formatted((!Config.openAIKey.isEmpty() ? "configured" : "unset"));
 					} else if (Arrays.asList(Constants.ANTHROPIC_MODELS).contains(model)) {
+
+						infoString += """
+								API Key: %s
+								""".formatted((!Config.anthropicKey.isEmpty() ? "configured" : "unset"));
+					} else if (Arrays.asList(Constants.AWS_BEDROCK_MODELS).contains(model)) {
 						infoString += """
 								AWS Region Key: %s
 								AWS Key: %s
@@ -82,9 +87,24 @@ public class AITalkMobsCommand {
 						})).then(Commands.literal("claude-2.1").executes(context -> {
 							return saveModelAndsendMessage(context, "claude-2.1",
 									Constants.ANTHROPIC_MODEL_CLAUDE2_1);
+						})).then(Commands.literal("claude-3-opus").executes(context -> {
+							return saveModelAndsendMessage(context, "claude-3-opus",
+									Constants.ANTHROPIC_MODEL_CLAUDE3_OPUS);
+						})).then(Commands.literal("claude-3-sonnet").executes(context -> {
+							return saveModelAndsendMessage(context, "claude-3-sonnet",
+									Constants.ANTHROPIC_MODEL_CLAUDE3_SONNET);
+						})).then(Commands.literal("claude-3-haiku").executes(context -> {
+							return saveModelAndsendMessage(context, "claude-3-haiku",
+									Constants.ANTHROPIC_MODEL_CLAUDE3_HAIKU);
+						})).then(Commands.literal("claude-2.0(AwsBedrock)").executes(context -> {
+							return saveModelAndsendMessage(context, "claude-2.0(AwsBedrock)",
+									Constants.AWS_BEDROCK_MODEL_CLAUDE2);
+						})).then(Commands.literal("claude-2.1(AwsBedrock)").executes(context -> {
+							return saveModelAndsendMessage(context, "claude-2.1(AwsBedrock)",
+									Constants.AWS_BEDROCK_MODEL_CLAUDE2_1);
 						})).then(Commands.literal("gemini-pro").executes(context -> {
 							return saveModelAndsendMessage(context, "gemini-pro",
-									Constants.ANTHROPIC_MODEL_GEMINI_PRO);
+									Constants.GOOGLE_AI_MODEL_GEMINI_PRO);
 						})))
 				.then(Commands.literal("selectTalkLanguage")
 						/**
@@ -128,6 +148,20 @@ public class AITalkMobsCommand {
 								.then(Commands.argument("apiKey", StringArgumentType.string()).executes(context -> {
 									String apiKey = context.getArgument("apiKey", String.class);
 									Config.saveOpenAIKey(apiKey);
+									context.getSource().getPlayerOrException()
+											.sendSystemMessage(Component.nullToEmpty(" API Key is set."));
+									return Command.SINGLE_SUCCESS;
+								}))))
+				.then(Commands.literal("anthropicConfig")
+						.then(Commands.literal("setApiKey")
+								/**
+								 * 「/aiTalk anthropicConfig setApiKey {APIキー}」コマンド
+								 * ・ AnthropicのAPIキーを登録する
+								 */
+
+								.then(Commands.argument("apiKey", StringArgumentType.string()).executes(context -> {
+									String apiKey = context.getArgument("apiKey", String.class);
+									Config.saveAnthropicKey(apiKey);
 									context.getSource().getPlayerOrException()
 											.sendSystemMessage(Component.nullToEmpty(" API Key is set."));
 									return Command.SINGLE_SUCCESS;

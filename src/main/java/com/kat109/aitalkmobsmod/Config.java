@@ -37,6 +37,10 @@ public class Config {
 	public static final ForgeConfigSpec.ConfigValue<String> GOOGLEAI_API_KEY = BUILDER.comment("GoogleAI API Key")
 			.define("googleAIKey", "");
 
+	// AnthropicのAPIキー
+	public static final ForgeConfigSpec.ConfigValue<String> ANTHROPIC_API_KEY = BUILDER.comment("Anthropic API Key")
+			.define("anthropicKey", "");
+
 	// AWSリージョン
 	public static final ForgeConfigSpec.ConfigValue<String> AWS_REGION = BUILDER.comment("AWS region")
 			.define("awsRegion", "");
@@ -84,6 +88,7 @@ public class Config {
 	public static String talkLanguage;
 	public static String awsRegion;
 	public static String openAIKey;
+	public static String anthropicKey;
 	public static String awsKey;
 	public static String awsSecretKey;
 	public static String googleAIKey;
@@ -100,6 +105,7 @@ public class Config {
 		talkLanguage = TALK_LANGUAGE.get();
 		awsRegion = AWS_REGION.get();
 		openAIKey = OPENAI_API_KEY.get();
+		anthropicKey = ANTHROPIC_API_KEY.get();
 		awsKey = AWS_KEY.get();
 		awsSecretKey = AWS_SECRET_KEY.get();
 		googleAIKey = GOOGLEAI_API_KEY.get();
@@ -155,6 +161,16 @@ public class Config {
 	public static void saveOpenAIKey(final String key) {
 		OPENAI_API_KEY.set(key);
 		OPENAI_API_KEY.save();
+	}
+
+	/**
+	 * AnthropicのAPIキー保存処理
+	 * 
+	 * @param key APIキー
+	 */
+	public static void saveAnthropicKey(final String key) {
+		ANTHROPIC_API_KEY.set(key);
+		ANTHROPIC_API_KEY.save();
 	}
 
 	/**
