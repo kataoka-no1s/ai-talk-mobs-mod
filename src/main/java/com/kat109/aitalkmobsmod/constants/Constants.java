@@ -11,6 +11,7 @@ public class Constants {
 	public static final String OPENAI_MODEL_GPT3_5_TURBO = "gpt-3.5-turbo";
 	public static final String OPENAI_MODEL_GPT4 = "gpt-4";
 	public static final String OPENAI_MODEL_GPT4_TURBO_PREVIEW = "gpt-4-turbo-preview";
+	public static final String OPENAI_MODEL_GPT4_O = "gpt-4o";
 	public static final String ANTHROPIC_MODEL_CLAUDE2 = "claude-2.0";
 	public static final String ANTHROPIC_MODEL_CLAUDE2_1 = "claude-2.1";
 	public static final String ANTHROPIC_MODEL_CLAUDE3_OPUS = "claude-3-opus-20240229";
@@ -24,7 +25,8 @@ public class Constants {
 	public static final String[] OPENAI_MODELS = {
 			OPENAI_MODEL_GPT3_5_TURBO,
 			OPENAI_MODEL_GPT4,
-			OPENAI_MODEL_GPT4_TURBO_PREVIEW
+			OPENAI_MODEL_GPT4_TURBO_PREVIEW,
+			OPENAI_MODEL_GPT4_O
 	};
 
 	// Anthropicのモデル

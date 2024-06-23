@@ -81,6 +81,9 @@ public class AITalkMobsCommand {
 						})).then(Commands.literal("gpt-4-turbo-preview").executes(context -> {
 							return saveModelAndsendMessage(context, "gpt-4-turbo-preview",
 									Constants.OPENAI_MODEL_GPT4_TURBO_PREVIEW);
+						})).then(Commands.literal("gpt-4o").executes(context -> {
+							return saveModelAndsendMessage(context, "gpt-4o",
+									Constants.OPENAI_MODEL_GPT4_O);
 						})).then(Commands.literal("claude-2.0").executes(context -> {
 							return saveModelAndsendMessage(context, "claude-2.0",
 									Constants.ANTHROPIC_MODEL_CLAUDE2);
